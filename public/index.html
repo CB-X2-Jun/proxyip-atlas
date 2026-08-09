@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>
+ProxyIP Atlas
+</title>
+
+
+<link rel="stylesheet"
+href="https://flagicons.lipis.dev/css/flag-icons.min.css">
+
+
+<link rel="stylesheet"
+href="style.css">
+
+
+</head>
+
+
+<body>
+
+
+<h1>
+🌐 ProxyIP Atlas
+</h1>
+
+
+<div id="list">
+正在查询 DNS...
+</div>
+
+
+
+<footer>
+
+<hr>
+
+<p>
+© CB-X2-Jun
+</p>
+
+<p>
+数据收集自网络
+</p>
+
+<p>
+请勿滥用 ProxyIP 服务
+</p>
+
+
+</footer>
+
+
+
+<script>
+
+
+const TYPE_NAME={
+
+dc:"数据中心",
+
+res:"住宅家宽",
+
+edu:"教育网络",
+
+mob:"移动网络"
+
+};
+
+
+
+function flag(cc){
+
+return `
+<span class="fi fi-${cc.toLowerCase()}"></span>
+`;
+
+}
+
+
+
+function render(data){
+
+
+data.sort((a,b)=>
+a.domain.localeCompare(b.domain)
+);
+
+
+
+let html="";
+
+
+for(const item of data){
+
+
+html += `
+
+<section>
+
+
+<h2>
+
+${flag(item.country)}
+
+${item.domain}
+
+<small>
+(${item.ips.length} IP)
+</small>
+
+</h2>
+
+
+<div class="tag">
+
+${item.country}
+${TYPE_NAME[item.type]}
+
+</div>
+
+
+
+<div class="ips">
+
+${item.ips.map(ip=>
+`<span>${ip}</span>`
+).join("")}
+
+</div>
+
+
+</section>
+
+
+`;
+
+
+}
+
+
+
+document.querySelector("#list").innerHTML=html;
+
+
+}
+
+
+
+fetch("/api/dns")
+
+.then(r=>r.json())
+
+.then(render)
+
+.catch(e=>{
+
+document.querySelector("#list")
+.innerHTML="DNS 查询失败";
+
+});
+
+
+
+</script>
+
+
+
+</body>
+
+</html>
