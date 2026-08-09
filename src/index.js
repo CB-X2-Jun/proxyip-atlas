@@ -33,83 +33,116 @@ const COUNTRIES=[
 
 async function resolveDNS(name){
 
-    const url=
-    "https://cloudflare-dns.com/dns-query?"
-    +new URLSearchParams({
-        name,
-        type:"A"
-    });
+try{
+
+const url=
+"https://1.1.1.1/dns-query?"
++new URLSearchParams({
+name,
+type:"A"
+});
 
 
-    const res=await fetch(url,{
-        headers:{
-            accept:"application/dns-json"
-        }
-    });
+const res=await fetch(url,{
+headers:{
+"accept":"application/dns-json"
+}
+});
 
 
-    if(!res.ok)
-        return [];
+if(!res.ok)
+return [];
 
 
-    const json=await res.json();
+const json=await res.json();
 
 
-    return (json.Answer||[])
-        .filter(x=>x.type===1)
-        .map(x=>x.data);
+return (json.Answer||[])
+.filter(x=>x.type===1)
+.map(x=>x.data);
+
+
+}catch(e){
+
+return [];
+
+}
+
+}
+
+async function api(){
+
+const tasks=[];
+
+
+for(const c of COUNTRIES){
+
+for(const t of TYPES){
+
+const domain=
+`${c.toLowerCase()}${t}.${DOMAIN}`;
+
+
+tasks.push({
+domain,
+country:c,
+type:t?t.substring(1):"dc"
+});
+
+
+}
 
 }
 
 
 
-async function api(){
-
-    const result=[];
-
-
-    for(const c of COUNTRIES){
-
-        for(const t of TYPES){
-
-            const domain=
-            `${c.toLowerCase()}${t}.${DOMAIN}`;
+const result=[];
+const LIMIT=50;
 
 
-            const ips=
-            await resolveDNS(domain);
+for(let i=0;i<tasks.length;i+=LIMIT){
+
+const batch=tasks.slice(i,i+LIMIT);
 
 
-            if(ips.length){
+const data=await Promise.all(
+batch.map(async x=>{
 
-                result.push({
-
-                    domain,
-
-                    country:c,
-
-                    type:
-                    t?
-                    t.substring(1):
-                    "dc",
-
-                    ips
-
-                });
-
-            }
-
-        }
-
-    }
+const ips=await resolveDNS(x.domain);
 
 
-    return Response.json(result,{
-        headers:{
-            "Cache-Control":
-            "public,max-age=300"
-        }
-    });
+if(!ips.length)
+return null;
+
+
+return {
+domain:x.domain,
+country:x.country,
+type:x.type,
+ips
+};
+
+
+})
+);
+
+
+result.push(
+...data.filter(Boolean)
+);
+
+
+}
+
+
+
+return Response.json(result,{
+headers:{
+"Cache-Control":
+"public,max-age=300"
+}
+});
+
 
 }
 
