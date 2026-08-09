@@ -5,49 +5,66 @@ const DOMAIN =
 "proxyip.etoj.run.place";
 
 
-const TYPES = [
-    "",
-    "-res",
-    "-edu",
-    "-mob"
+const TYPES=[
+    {
+        suffix:"",
+        name:"DC"
+    },
+    {
+        suffix:"-res",
+        name:"Residential"
+    },
+    {
+        suffix:"-edu",
+        name:"Education"
+    },
+    {
+        suffix:"-mob",
+        name:"Mobile"
+    }
 ];
 
 
-const COUNTRIES = [
-"AD","AE","AF","AG","AI","AL","AM","AO","AQ","AR",
-"AS","AT","AU","AW","AX","AZ","BA","BB","BD","BE",
-"BF","BG","BH","BI","BJ","BL","BM","BN","BO","BQ",
-"BR","BS","BT","BV","BW","BY","BZ","CA","CC","CD",
-"CF","CG","CH","CI","CK","CL","CM","CN","CO","CR",
-"CU","CV","CW","CX","CY","CZ","DE","DJ","DK","DM",
-"DO","DZ","EC","EE","EG","ER","ES","ET","FI","FJ",
-"FK","FM","FO","FR","GA","GB","GD","GE","GF","GH",
-"GI","GL","GM","GN","GP","GQ","GR","GS","GT","GU",
-"GW","GY","HK","HN","HR","HT","HU","ID","IE","IL",
-"IN","IQ","IR","IS","IT","JP","KR","LA","LB","LK",
-"LT","LU","LV","MA","MC","MD","ME","MG","MK",
-"ML","MM","MN","MO","MP","MT","MU","MV","MX",
-"MY","MZ","NA","NC","NE","NG","NL","NO","NP",
-"NZ","OM","PA","PE","PH","PK","PL","PT","QA",
-"RO","RS","RU","SA","SB","SC","SE","SG","SI",
-"SK","SL","SM","SN","SO","SR","SV","SY","TH",
-"TR","TW","TZ","UA","UG","US","UY","UZ","VN",
-"WS","ZA","ZM","ZW"
+// ISO 国家代码
+
+const COUNTRIES=[
+"AD","AE","AF","AG","AI","AL","AM","AO","AR",
+"AT","AU","AZ","BA","BB","BD","BE","BG",
+"BH","BI","BJ","BN","BO","BR","BS","BT",
+"BW","BY","BZ","CA","CD","CF","CG","CH",
+"CI","CL","CM","CN","CO","CR","CU","CY",
+"CZ","DE","DJ","DK","DM","DO","DZ","EC",
+"EE","EG","ES","ET","FI","FJ","FR","GA",
+"GB","GD","GE","GH","GI","GL","GM","GN",
+"GR","GT","GU","HK","HN","HR","HT","HU",
+"ID","IE","IL","IN","IQ","IR","IS","IT",
+"JM","JO","JP","KE","KG","KH","KR",
+"KZ","LA","LB","LK","LR","LS","LT",
+"LU","LV","MA","MC","MD","ME","MG",
+"MK","ML","MM","MN","MO","MT","MU",
+"MV","MX","MY","MZ","NA","NG","NI",
+"NL","NO","NP","NZ","OM","PA","PE",
+"PH","PK","PL","PT","PY","QA","RO",
+"RS","RU","SA","SE","SG","SI","SK",
+"SN","SO","SR","SV","TH","TJ","TN",
+"TR","TW","TZ","UA","UG","US",
+"UY","UZ","VE","VN","ZA","ZM","ZW"
 ];
 
 
 
-// DNS服务器轮换
+// DNS轮换
 
-const DNS_SERVERS=[
+const SERVERS=[
 "1.1.1.1",
 "8.8.8.8",
 "9.9.9.9",
-"208.67.220.220"
+"208.67.220.220",
+"1.10.10.10"
 ];
 
 
-let dnsIndex=0;
+let pointer=0;
 
 
 
@@ -55,22 +72,23 @@ async function resolve(name){
 
 
 const server =
-DNS_SERVERS[
-dnsIndex++ % DNS_SERVERS.length
+SERVERS[
+pointer++ %
+SERVERS.length
 ];
 
 
 try{
 
 
-const dns =
+const client =
 UDPClient({
 dns:server
 });
 
 
 const response =
-await dns(
+await client(
 Packet.createQuery({
 questions:[
 {
@@ -80,6 +98,7 @@ type:"A"
 ]
 })
 );
+
 
 
 return response.answers
@@ -101,28 +120,27 @@ return [];
 
 
 
-exports.handler = async function(){
+
+async function scan(){
+
 
 const tasks=[];
 
 
-for(const c of COUNTRIES){
+for(const country of COUNTRIES){
 
-for(const t of TYPES){
+
+for(const type of TYPES){
 
 
 tasks.push({
 
+country,
+
+type:type.name,
+
 domain:
-`${c.toLowerCase()}${t}.${DOMAIN}`,
-
-country:c,
-
-type:
-t ?
-t.substring(1)
-:
-"dc"
+`${country.toLowerCase()}${type.suffix}.${DOMAIN}`
 
 });
 
@@ -136,52 +154,51 @@ t.substring(1)
 const result=[];
 
 
-// 限制并发
 
-const LIMIT=20;
-
+// 控制并发
 
 for(
 let i=0;
 i<tasks.length;
-i+=LIMIT
+i+=20
 ){
 
 
-const batch =
+const batch=
 tasks.slice(
 i,
-i+LIMIT
+i+20
 );
 
 
 
-const data =
+const data=
 await Promise.all(
 
 batch.map(async item=>{
 
 
-const ips =
+const ips=
 await resolve(
 item.domain
 );
+
 
 
 if(!ips.length)
 return null;
 
 
-return {
 
-domain:item.domain,
-
+return item.ips
+?
+item
+:
+{
 country:item.country,
-
 type:item.type,
-
+domain:item.domain,
 ips
-
 };
 
 
@@ -199,6 +216,19 @@ result.push(
 }
 
 
+return result;
+
+}
+
+
+
+exports.handler=async()=>{
+
+
+const data=
+await scan();
+
+
 
 return {
 
@@ -206,14 +236,14 @@ statusCode:200,
 
 headers:{
 "content-type":
-"application/json",
+"application/json;charset=utf-8",
 
 "cache-control":
-"public,max-age=300"
+"public,max-age=600"
 },
 
 body:
-JSON.stringify(result)
+JSON.stringify(data)
 
 };
 
