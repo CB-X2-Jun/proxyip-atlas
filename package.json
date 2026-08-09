@@ -1,0 +1,7 @@
+{
+  "name": "proxyip-atlas",
+  "version": "2.0.0",
+  "dependencies": {
+    "dns2": "^2.1.0"
+  }
+}
