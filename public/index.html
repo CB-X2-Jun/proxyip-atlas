@@ -1,21 +1,21 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
+<!doctype html>
+
+<html lang="zh">
 
 <head>
 
-<meta charset="UTF-8">
+<meta charset="utf-8">
 
 <title>
 ProxyIP Atlas
 </title>
 
 
-<link rel="stylesheet"
-href="https://flagicons.lipis.dev/css/flag-icons.min.css">
+<link rel="stylesheet" href="style.css">
 
 
 <link rel="stylesheet"
-href="style.css">
+href="https://cdn.jsdelivr.net/gh/lipis/flag-icons/css/flag-icons.min.css">
 
 
 </head>
@@ -24,114 +24,214 @@ href="style.css">
 <body>
 
 
+<div class="container">
+
+
+<header>
+
 <h1>
 🌐 ProxyIP Atlas
 </h1>
 
+<p>
+proxyip.etoj.run.place A Record Explorer
+</p>
 
-<div id="list">
-正在查询 DNS...
+
+<input
+id="search"
+placeholder="搜索国家 / 域名 / IP..."
+>
+
+
+</header>
+
+
+
+<section id="stats">
+
+
+<div>
+国家
+<strong id="countries">
+-
+</strong>
 </div>
 
 
-
-<footer>
-
-<hr>
-
-<p>
-© CB-X2-Jun
-</p>
-
-<p>
-数据收集自网络
-</p>
-
-<p>
-请勿滥用 ProxyIP 服务
-</p>
+<div>
+域名
+<strong id="domains">
+-
+</strong>
+</div>
 
 
-</footer>
+<div>
+IP
+<strong id="ips">
+-
+</strong>
+</div>
+
+
+</section>
+
+
+
+<main id="atlas">
+
+加载中...
+
+</main>
+
+
+
+</div>
 
 
 
 <script>
 
 
-const TYPE_NAME={
-
-dc:"数据中心",
-
-res:"住宅家宽",
-
-edu:"教育网络",
-
-mob:"移动网络"
-
-};
+let data=[];
 
 
 
-function flag(cc){
-
-return `
-<span class="fi fi-${cc.toLowerCase()}"></span>
+const flag=c=>
+`
+<span class="fi fi-${c.toLowerCase()}"></span>
 `;
+
+
+
+async function load(){
+
+
+const res=
+await fetch(
+"/.netlify/functions/dns"
+);
+
+
+data=
+await res.json();
+
+
+render();
+
 
 }
 
 
 
-function render(data){
+function render(){
 
 
-data.sort((a,b)=>
-a.domain.localeCompare(b.domain)
+const box=
+document.querySelector("#atlas");
+
+
+const keyword=
+document.querySelector("#search").value
+.toLowerCase();
+
+
+
+let filtered=
+data.filter(x=>
+JSON.stringify(x)
+.toLowerCase()
+.includes(keyword)
 );
 
 
 
-let html="";
+countries=
+new Set(
+filtered.map(x=>x.country)
+);
 
 
-for(const item of data){
+
+document.querySelector("#countries")
+.textContent=
+countries.size;
 
 
-html += `
+document.querySelector("#domains")
+.textContent=
+filtered.length;
 
-<section>
+
+document.querySelector("#ips")
+.textContent=
+filtered.reduce(
+(a,b)=>a+b.ips.length,0
+);
+
+
+
+box.innerHTML="";
+
+
+
+for(const item of filtered){
+
+
+box.innerHTML+=`
+
+<section class="card">
 
 
 <h2>
 
 ${flag(item.country)}
 
-${item.domain}
-
-<small>
-(${item.ips.length} IP)
-</small>
+${item.country}
 
 </h2>
 
 
-<div class="tag">
+<div class="domain">
 
-${item.country}
-${TYPE_NAME[item.type]}
+${item.domain}
+
+<button onclick="copyText('${item.domain}')">
+复制
+</button>
 
 </div>
+
+
+<span class="tag">
+${item.type}
+</span>
 
 
 
 <div class="ips">
 
-${item.ips.map(ip=>
-`<span>${ip}</span>`
-).join("")}
+
+${
+item.ips.map(ip=>`
+
+<div class="ip">
+
+${ip}
+
+<button onclick="copyText('${ip}')">
+复制
+</button>
 
 </div>
+
+`).join("")
+}
+
+
+</div>
+
 
 
 </section>
@@ -139,35 +239,32 @@ ${item.ips.map(ip=>
 
 `;
 
-
 }
-
-
-
-document.querySelector("#list").innerHTML=html;
 
 
 }
 
 
 
-fetch("/api/dns")
+function copyText(t){
 
-.then(r=>r.json())
+navigator.clipboard.writeText(t);
 
-.then(render)
+}
 
-.catch(e=>{
 
-document.querySelector("#list")
-.innerHTML="DNS 查询失败";
 
-});
+document
+.querySelector("#search")
+.oninput=
+render;
 
+
+
+load();
 
 
 </script>
-
 
 
 </body>
