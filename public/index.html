@@ -97,7 +97,223 @@ IP
 
 </div>
 
+<section class="docs">
 
+<h2>📖 什么是 ProxyIP？</h2>
+
+<p>
+ProxyIP 是一种用于 Cloudflare Workers 环境的反代 IP。
+</p>
+
+<p>
+EDtunnel 以及其他类似项目通常部署在 Cloudflare Workers 上。然而，Cloudflare Workers 的
+<a href="https://developers.cloudflare.com/workers/runtime-apis/tcp-sockets/" target="_blank">
+TCP sockets 文档
+</a>
+明确说明：
+</p>
+
+<blockquote>
+Outbound TCP sockets to Cloudflare IP ranges are blocked.
+</blockquote>
+
+<p>
+也就是说，Workers 会阻止指向 Cloudflare IP 段的出站 TCP 连接。
+因此，部分依赖直连 Cloudflare CDN IP 的链路无法正常工作。
+</p>
+
+<p>
+例如，部署在 Cloudflare Workers 上的 VLESS / Trojan 节点，在访问同样使用 Cloudflare CDN 的网站（例如 ipin.io、cloudflare.com、ip2location.com）时，可能会因为目标地址属于 Cloudflare IP 而受到限制。
+</p>
+
+<p>
+ProxyIP 的作用，就是提供一个可用的中转地址，让 Workers 可以通过该地址访问 Cloudflare 服务。
+部分 Cloudflare CDN VLESS 配置生成器中也将其称为“反代 IP”。
+</p>
+
+<h2>🚀 使用方式</h2>
+
+<h3>1. 部署 EDtunnel</h3>
+
+<p>
+如果你还没有 EDtunnel，可以通过以下链接部署：
+</p>
+
+<p>
+<a href="https://deploy.workers.cloudflare.com/?url=https://github.com/6Kmfi6HP/EDtunnel" target="_blank">
+部署 EDtunnel 到 Cloudflare Workers
+</a>
+</p>
+
+<p>
+你也可以使用别人分享的 Worker，但建议使用自己的 Cloudflare 小号部署。
+</p>
+
+<h3>2. 修改 UUID</h3>
+
+<p>
+部署完成后，首先修改环境变量中的 UUID。
+</p>
+
+<p>
+<strong>
+不要保留默认 UUID！
+</strong>
+</p>
+
+<p>
+默认 UUID 很容易被扫描器发现，导致你的 Worker 变成公开节点，同时消耗 Cloudflare Workers 的每日访问额度。
+</p>
+
+<h3>3. 设置 ProxyIP</h3>
+
+<p>
+进入 Cloudflare Worker 的代码编辑页面，找到开头的 ProxyIP 数组。
+</p>
+
+<p>
+可以修改为：
+</p>
+
+<pre><code>["proxyip.cmliussss.net:443"]</code></pre>
+
+<p>
+该方式相当于 fallback：
+当你指定的 ProxyIP 不可用时，Worker 会自动尝试 ProxyIP 数组中的地址。
+</p>
+
+<p>
+修改完成后记得点击部署。
+</p>
+
+<h3>4. 使用自定义域名</h3>
+
+<p>
+<strong>
+请务必给 Worker 绑定自定义域名。
+</strong>
+</p>
+
+<p>
+由于 workers.dev 域名在部分地区无法正常解析，直接使用
+<code>xxx.workers.dev</code>
+可能导致无法连接。
+</p>
+
+<h3>5. 生成客户端配置</h3>
+
+<p>
+VLESS 配置格式示例：
+</p>
+
+<pre><code>
+vless://UUID@你的域名:端口?encryption=none&amp;security=tls&amp;sni=你的域名&amp;fp=random&amp;type=ws&amp;host=你的域名#ProxyIP
+</code></pre>
+
+<p>
+常用端口：
+</p>
+
+<pre><code>
+443
+8443
+2053
+2096
+2083
+2087
+</code></pre>
+
+<h3>6. 设置 WebSocket Path</h3>
+
+<p>
+导入客户端后，在详细配置中修改 Path：
+</p>
+
+<pre><code>/?ed=2048</code></pre>
+
+<h3>7. 指定 ProxyIP</h3>
+
+<p>
+如果不指定 ProxyIP，将使用 Worker 默认配置。
+</p>
+
+<p>
+你可以在 Path 后添加：
+</p>
+
+<pre><code>
+/?ed=2048&amp;proxyip=域名或IP:443
+</code></pre>
+
+<p>
+例如：
+</p>
+
+<pre><code>
+/?ed=2048&amp;proxyip=kz.proxyip.etoj.run.place:443
+</code></pre>
+
+<p>
+或者：
+</p>
+
+<pre><code>
+/?ed=2048&amp;proxyip=82.118.18.202:443
+</code></pre>
+
+<h2>🔍 检查 ProxyIP 可用性</h2>
+
+<p>
+你可以使用
+<a href="https://check.proxyip.cmliussss.net/" target="_blank">
+Check ProxyIP
+</a>
+检测域名或 IP 是否可用。
+</p>
+
+<p>
+例如输入：
+</p>
+
+<pre><code>
+kz.proxyip.etoj.run.place
+
+82.118.18.202
+</code></pre>
+
+<p>
+如果检测成功，即可尝试使用。
+</p>
+
+<h2>⚠️ 使用注意</h2>
+
+<ul>
+
+<li>
+请勿滥用 ProxyIP 或 Cloudflare Workers。
+</li>
+
+<li>
+不要公开传播自己的 Worker UUID。
+</li>
+
+<li>
+Cloudflare 对其服务有使用限制，大规模滥用可能导致服务被限制或封禁。
+</li>
+
+<li>
+建议合理使用，仅用于个人学习、测试和研究。
+</li>
+
+</ul>
+
+<p class="thanks">
+祝使用愉快～ 🌐
+</p>
+
+</section>
+
+<p align="center">© 2026 CB-X2-Jun</p>
 
 <script>
 
