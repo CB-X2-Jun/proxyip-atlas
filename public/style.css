@@ -371,3 +371,142 @@ font-size:32px;
 
 
 }
+/* =========================
+   Documentation section
+   ========================= */
+
+
+.docs {
+
+    background:white;
+
+    padding:30px;
+
+    margin-top:40px;
+
+    border-radius:20px;
+
+    box-shadow:
+    0 10px 30px #0284c733;
+
+    line-height:1.8;
+
+}
+
+
+
+.docs h2 {
+
+    color:#0284c7;
+
+    margin-top:35px;
+
+}
+
+
+
+.docs h3 {
+
+    color:#075985;
+
+    margin-top:25px;
+
+}
+
+
+
+.docs a {
+
+    color:#0284c7;
+
+    text-decoration:none;
+
+}
+
+
+
+.docs a:hover {
+
+    text-decoration:underline;
+
+}
+
+
+
+.docs pre {
+
+    background:#082f49;
+
+    color:#e0f2fe;
+
+    padding:15px;
+
+    border-radius:12px;
+
+    overflow-x:auto;
+
+    font-family:monospace;
+
+}
+
+
+
+.docs code {
+
+    background:#e0f2fe;
+
+    padding:3px 6px;
+
+    border-radius:6px;
+
+}
+
+
+
+.docs pre code {
+
+    background:none;
+
+    padding:0;
+
+}
+
+
+
+.docs blockquote {
+
+    border-left:
+
+    5px solid #0284c7;
+
+    margin-left:0;
+
+    padding-left:20px;
+
+    color:#475569;
+
+    font-style:italic;
+
+}
+
+
+
+.docs li {
+
+    margin:10px 0;
+
+}
+
+
+
+.thanks {
+
+    text-align:center;
+
+    color:#0284c7;
+
+    font-size:20px;
+
+    margin-top:30px;
+
+}
