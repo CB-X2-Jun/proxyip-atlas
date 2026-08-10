@@ -99,6 +99,30 @@ IP
 
 <section class="docs">
 
+<h2>如何选择符合心意的 IP？</h2>
+
+<p>本站特地为使用者将 IP 分为 4 类：</p>
+
+<ul>
+
+<li>
+数据中心：部署在机房、VPS 的 IP，速度通常十分可观，且可用性高，然而，某些风控严格的网站可能屏蔽来自数据中心的 IP。
+</li>
+
+<li>
+住宅家宽：这种 IP 通常声誉较高，就算被滥用，也大概率不会被拦截。然而，其网络速度可能稍慢，且容易跑路。
+</li>
+
+<li>
+教育网络：一种特殊的 IP，是分给各个学校（通常是大学）的专用 IP，声誉也较高，然而通常这类 proxyIP 可能具有试验性质，稳定性难以预料。
+</li>
+
+<li>
+移动网络：声誉也较高，但几乎找不到这类 proxyIP，且由于此类 IP 可能具有动态特性，最不稳定。
+</li>
+
+</ul>
+
 <h2>📖 什么是 ProxyIP？</h2>
 
 <p>
@@ -172,7 +196,7 @@ ProxyIP 的作用，就是提供一个可用的中转地址，让 Workers 可以
 </p>
 
 <p>
-可以修改为：
+可以修改为：（质量高）
 </p>
 
 <pre><code>["proxyip.cmliussss.net:443"]</code></pre>
@@ -195,9 +219,16 @@ ProxyIP 的作用，就是提供一个可用的中转地址，让 Workers 可以
 </p>
 
 <p>
-由于 workers.dev 域名在部分地区无法正常解析，直接使用
+由于 workers.dev 域名在部分地区（比如中国大陆）无法正常解析，直接使用
 <code>xxx.workers.dev</code>
-可能导致无法连接。
+会导致无法连接。
+</p>
+
+<p>
+若没有域名，你可以去<a href="https://dnshe.com" target="_blank">
+DNSHE
+</a>
+注册免费的 cc.cd、de5.net、cn.mt 域名，这些二级域名可以在 Cloudflare 当做顶级域名使用并配置。
 </p>
 
 <h3>5. 生成客户端配置</h3>
@@ -206,16 +237,14 @@ ProxyIP 的作用，就是提供一个可用的中转地址，让 Workers 可以
 VLESS 配置格式示例：
 </p>
 
-<pre><code>
-vless://UUID@你的域名:端口?encryption=none&amp;security=tls&amp;sni=你的域名&amp;fp=random&amp;type=ws&amp;host=你的域名#ProxyIP
+<pre><code>vless://UUID@你的域名:端口?encryption=none&amp;security=tls&amp;sni=你的域名&amp;fp=random&amp;type=ws&amp;host=你的域名#ProxyIP
 </code></pre>
 
 <p>
-常用端口：
+可用端口：
 </p>
 
-<pre><code>
-443
+<pre><code>443
 8443
 2053
 2096
@@ -241,25 +270,20 @@ vless://UUID@你的域名:端口?encryption=none&amp;security=tls&amp;sni=你的
 你可以在 Path 后添加：
 </p>
 
-<pre><code>
-/?ed=2048&amp;proxyip=域名或IP:443
+<pre><code>/?ed=2048&amp;proxyip=域名或IP:443
 </code></pre>
 
 <p>
 例如：
 </p>
 
-<pre><code>
-/?ed=2048&amp;proxyip=kz.proxyip.etoj.run.place:443
-</code></pre>
+<pre><code>/?ed=2048&amp;proxyip=kz.proxyip.etoj.run.place:443</code></pre>
 
 <p>
 或者：
 </p>
 
-<pre><code>
-/?ed=2048&amp;proxyip=82.118.18.202:443
-</code></pre>
+<pre><code>/?ed=2048&amp;proxyip=82.118.18.202:443</code></pre>
 
 <h2>🔍 检查 ProxyIP 可用性</h2>
 
@@ -275,9 +299,7 @@ Check ProxyIP
 例如输入：
 </p>
 
-<pre><code>
-kz.proxyip.etoj.run.place
-
+<pre><code>kz.proxyip.etoj.run.place
 82.118.18.202
 </code></pre>
 
@@ -298,7 +320,7 @@ kz.proxyip.etoj.run.place
 </li>
 
 <li>
-Cloudflare 对其服务有使用限制，大规模滥用可能导致服务被限制或封禁。
+Cloudflare 对其服务有使用限制，大规模滥用可能导致服务被限制或封禁。账号会被封（这就是为什么建议用小号）。
 </li>
 
 <li>
