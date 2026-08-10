@@ -1,10 +1,11 @@
 <!doctype html>
-
 <html lang="zh">
 
 <head>
 
 <meta charset="utf-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <title>
 ProxyIP Atlas
@@ -33,10 +34,18 @@ href="https://cdn.jsdelivr.net/gh/lipis/flag-icons/css/flag-icons.min.css">
 🌐 ProxyIP Atlas
 </h1>
 
+
 <p>
 proxyip.etoj.run.place A Record Explorer
 </p>
 
+<p>
+为 <a href="https://github.com/6Kmfi6HP/EDtunnel" target="_blank">EDtunnel</a> 用户打造
+</p>
+
+<p>
+具体说明与使用方式，请见页尾
+</p>
 
 <input
 id="search"
@@ -86,7 +95,6 @@ IP
 </main>
 
 
-
 </div>
 
 
@@ -98,10 +106,327 @@ let data=[];
 
 
 
-const flag=c=>
-`
-<span class="fi fi-${c.toLowerCase()}"></span>
+const TYPE_MAP={
+
+
+"DC":
+"数据中心",
+
+
+"Residential":
+"住宅家宽",
+
+
+"Education":
+"教育网络",
+
+
+"Mobile":
+"移动网络"
+
+
+};
+
+
+
+function copyText(text){
+
+
+navigator.clipboard.writeText(text);
+
+
+}
+
+
+
+function groupData(list){
+
+
+const result={};
+
+
+for(const item of list){
+
+
+if(!result[item.country]){
+
+result[item.country]=[];
+
+}
+
+
+result[item.country].push(item);
+
+
+}
+
+
+return result;
+
+
+}
+
+
+
+function render(){
+
+
+const keyword=
+document
+.querySelector("#search")
+.value
+.trim()
+.toLowerCase();
+
+
+
+const grouped={};
+
+
+
+for(const item of data){
+
+
+let matchedIPs=
+item.ips.filter(ip=>
+
+ip
+.toLowerCase()
+.includes(keyword)
+
+);
+
+
+
+let matched=false;
+
+
+
+if(!keyword){
+
+matched=true;
+
+}
+else{
+
+
+matched =
+item.country
+.toLowerCase()
+.includes(keyword)
+
+||
+
+item.domain
+.toLowerCase()
+.includes(keyword)
+
+||
+
+item.type
+.toLowerCase()
+.includes(keyword)
+
+||
+
+matchedIPs.length>0;
+
+
+}
+
+
+
+if(matched){
+
+
+grouped[item.country] ??= [];
+
+
+grouped[item.country]
+.push({
+
+...item,
+
+displayIPs:
+
+keyword && matchedIPs.length
+?
+matchedIPs
+:
+item.ips
+
+});
+
+
+}
+
+
+}
+
+
+
+const atlas=
+document.querySelector("#atlas");
+
+
+atlas.innerHTML="";
+
+
+
+let domainCount=0;
+let ipCount=0;
+
+
+
+for(const country of Object.keys(grouped)){
+
+
+const items=
+grouped[country];
+
+
+
+domainCount+=items.length;
+
+
+for(const item of items){
+
+ipCount+=item.displayIPs.length;
+
+}
+
+
+
+atlas.innerHTML+=`
+
+
+<section class="card">
+
+
+<h2>
+
+
+<span class="fi fi-${country.toLowerCase()}">
+</span>
+
+
+${country}
+
+
+</h2>
+
+
+
+${
+
+
+items.map(item=>`
+
+
+<div class="entry">
+
+
+<div class="domain">
+
+
+<span>
+${item.domain}
+</span>
+
+
+<button onclick="copyText('${item.domain}')">
+复制
+</button>
+
+
+</div>
+
+
+
+<div class="tag">
+
+${TYPE_MAP[item.type] || item.type}
+
+</div>
+
+
+
+<div class="ips">
+
+
+${
+
+item.displayIPs.map(ip=>`
+
+<div class="ip">
+
+
+<span>
+${ip}
+</span>
+
+
+<button onclick="copyText('${ip}')">
+复制
+</button>
+
+
+</div>
+
+
+`).join("")
+
+}
+
+
+</div>
+
+
+
+</div>
+
+
+
+`).join("")
+
+
+}
+
+
+</section>
+
+
+
 `;
+
+
+}
+
+
+
+
+document
+.querySelector("#countries")
+.textContent=
+Object.keys(grouped).length;
+
+
+
+document
+.querySelector("#domains")
+.textContent=
+domainCount;
+
+
+
+document
+.querySelector("#ips")
+.textContent=
+ipCount;
+
+
+
+}
 
 
 
@@ -114,8 +439,10 @@ await fetch(
 );
 
 
+
 data=
 await res.json();
+
 
 
 render();
@@ -125,139 +452,12 @@ render();
 
 
 
-function render(){
-
-
-const box=
-document.querySelector("#atlas");
-
-
-const keyword=
-document.querySelector("#search").value
-.toLowerCase();
-
-
-
-let filtered=
-data.filter(x=>
-JSON.stringify(x)
-.toLowerCase()
-.includes(keyword)
-);
-
-
-
-countries=
-new Set(
-filtered.map(x=>x.country)
-);
-
-
-
-document.querySelector("#countries")
-.textContent=
-countries.size;
-
-
-document.querySelector("#domains")
-.textContent=
-filtered.length;
-
-
-document.querySelector("#ips")
-.textContent=
-filtered.reduce(
-(a,b)=>a+b.ips.length,0
-);
-
-
-
-box.innerHTML="";
-
-
-
-for(const item of filtered){
-
-
-box.innerHTML+=`
-
-<section class="card">
-
-
-<h2>
-
-${flag(item.country)}
-
-${item.country}
-
-</h2>
-
-
-<div class="domain">
-
-${item.domain}
-
-<button onclick="copyText('${item.domain}')">
-复制
-</button>
-
-</div>
-
-
-<span class="tag">
-${item.type}
-</span>
-
-
-
-<div class="ips">
-
-
-${
-item.ips.map(ip=>`
-
-<div class="ip">
-
-${ip}
-
-<button onclick="copyText('${ip}')">
-复制
-</button>
-
-</div>
-
-`).join("")
-}
-
-
-</div>
-
-
-
-</section>
-
-
-`;
-
-}
-
-
-}
-
-
-
-function copyText(t){
-
-navigator.clipboard.writeText(t);
-
-}
-
-
-
 document
 .querySelector("#search")
-.oninput=
-render;
+.addEventListener(
+"input",
+render
+);
 
 
 
