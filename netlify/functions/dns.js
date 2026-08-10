@@ -70,7 +70,6 @@ let pointer=0;
 
 async function resolve(name){
 
-
 const server =
 SERVERS[
 pointer++ %
@@ -80,37 +79,35 @@ SERVERS.length
 
 try{
 
-
-const client =
+const dns =
 UDPClient({
-dns:server
+    dns: server
 });
 
 
 const response =
-await client(
-Packet.createQuery({
-questions:[
-{
-name,
-type:"A"
-}
-]
-})
-);
-
+await dns(name);
 
 
 return response.answers
 .filter(
-x=>x.type===1
+x =>
+x.type === 1
 )
 .map(
-x=>x.address
+x =>
+x.address
 );
 
 
 }catch(e){
+
+console.log(
+"DNS failed:",
+name,
+e.message
+);
+
 
 return [];
 
