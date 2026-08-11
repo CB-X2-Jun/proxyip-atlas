@@ -21,6 +21,14 @@ const TYPES=[
     {
         suffix:"-mob",
         name:"Mobile"
+    },
+    {
+        suffix:"-com",
+        name:"Commercial"
+    },
+    {
+        suffix:"-gov",
+        name:"Government"
     }
 ];
 
